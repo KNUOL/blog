@@ -1,0 +1,45 @@
+server:
+  port: 7230
+
+spring:
+  main:
+    allow-circular-references: true
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/sg_blog?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: 314159
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 5MB
+
+  data:
+    redis:
+      host: 47.113.187.154
+      port: 6379
+      #Redis服务器连接密码，默认为空，若有设置按设置的来
+      password: 314159
+      jedis:
+        pool:
+          # 连接池最大连接数，若为负数则表示没有任何限制
+          max-active: 8
+          # 连接池最大阻塞等待时间，若为负数则表示没有任何限制
+          max-wait: -1
+          # 连接池中的最大空闲连接
+          max-idle: 8
+mybatis-plus:
+  configuration:
+    log-impl:  org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      logic-delete-field: delFlag
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+      id-type: auto
+
+oss:
+  accessKey:
+  secretKey:
+  bucket: knuol-blog
