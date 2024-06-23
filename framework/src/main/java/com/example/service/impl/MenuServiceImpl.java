@@ -7,6 +7,7 @@ import com.example.pojo.Menu;
 import com.example.service.MenuService;
 import com.example.mapper.MenuMapper;
 
+import com.example.utils.SecurityUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -39,12 +40,12 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, Menu>
     @Override
     public List<Menu> selectRouterMenuByUserId(Long userId) {
         List<Menu>menus=null;
-//        if (SecurityUtils.isAdmin()){
-//             menus=baseMapper.selectAllRouterMenu();
-//        }
-//        else{
-//            menus= baseMapper.selectRouterMenuTreeByUserId(userId);
-//        }
+        if (SecurityUtils.isAdmin()){
+             menus=baseMapper.selectAllRouterMenu();
+        }
+        else{
+            menus= baseMapper.selectRouterMenuTreeByUserId(userId);
+        }
         //构建tree
         List<Menu> menuTree=buildMenuTree(menus,0L);
         return menuTree;
