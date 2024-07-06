@@ -14,6 +14,7 @@ import com.example.service.ArticleTagService;
 import com.example.service.CategoryService;
 import com.example.utils.BeanCopyUtils;
 
+import com.example.utils.RedisCache;
 import com.example.vo.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -37,8 +40,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
 
     @Autowired
     private CategoryService categoryService;
-//    @Autowired
-//    private RedisCache redisCache;
+    @Autowired
+    private RedisCache redisCache;
     @Autowired
     private ArticleTagService articleTagService;
 
@@ -77,7 +80,6 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
 
         List<ArticleListVo> articleListVos = BeanCopyUtils.copyBeanList(articles, ArticleListVo.class);
 
-
         PageVo pageVo = new PageVo(articleListVos,page.getTotal());
         return ResponseResult.okResult(pageVo);
     }
@@ -87,8 +89,9 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
         //根据id查询文章
         Article article = getById(id);
         //从redis查浏览次数
-//        Integer viewCount = redisCache.getCacheMapValue("article:viewCount", id.toString());
-//        article.setViewCount(viewCount.longValue());
+        Integer viewCount = redisCache.getCacheMapValue("article:viewCount", id.toString());
+
+        article.setViewCount(viewCount.longValue());
 
         ArticleDetailVo articleDetailVo = BeanCopyUtils.copyBean(article, ArticleDetailVo.class);
         Long categoryId = articleDetailVo.getCategoryId();
@@ -115,6 +118,13 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article>
         List<ArticleTag> articleTags = addArticle.getTags().stream()
                 .map(tagId -> new ArticleTag(article.getId(), tagId)).collect(Collectors.toList());
         articleTagService.saveBatch(articleTags);
+        //查询博客信息
+        List<Article> articles = baseMapper.selectList(null);
+        Map<String, Integer> viewCountMap = articles.stream().
+                collect(Collectors.toMap(article1 -> article1.getId().toString(), article2 -> article2.getViewCount().intValue()));
+
+        //存到reids
+        redisCache.setCacheMap("article:viewCount", viewCountMap);
         return ResponseResult.okResult();
     }
 
